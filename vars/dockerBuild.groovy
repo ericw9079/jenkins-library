@@ -10,9 +10,9 @@ def call(Map params) {
 			}
 			stage ('Build') {
 				steps {
-          configFileProvider([configFile(fileId: 'npmrc', targetLocation: '.npmrc')]) {
-            sh 'docker build --rm --secret id=npmrc,src=.npmrc -t ${params.name} .'
-          }
+					configFileProvider([configFile(fileId: 'npmrc', targetLocation: '.npmrc')]) {
+						sh 'docker build --rm --secret id=npmrc,src=.npmrc -t ${params.name} .'
+					}
 				}
 			}
 			stage ('Clean') {
