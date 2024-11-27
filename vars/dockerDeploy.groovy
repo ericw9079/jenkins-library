@@ -38,7 +38,7 @@ def call(Map paramVars) {
 			stage ('Remove Container') {
 				steps {
 					catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-						sh "docker stop ${paramVars.name}"
+						sh "docker rm ${paramVars.name}"
 					}
 				}
 			}
