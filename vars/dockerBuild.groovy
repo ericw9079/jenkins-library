@@ -1,3 +1,13 @@
+/**
+  This file defines the common process for building docker images for deployment
+  Requirements:
+    - Dockerfile in the project root
+  Parameters (via Map variable):
+    - name (String): Name of the image to build
+    - projectRoot (String): The root directory of the project
+    - deployJob (String): Name of the Jenkins job to deploy the image
+    - [OPTIONAL] excludes (ArrayList<String>): List of additional files and folders to exclude from the build context (logs directory is excluded by default)
+ */
 def call(Map paramVars) {
 	def excludes = ''
 
@@ -14,7 +24,7 @@ def call(Map paramVars) {
 		stages {
 			stage ('Checkout') {
 				steps {
-					sh "rsync -ax${excludes} ${paramVars.projectRoot} ./"
+					sh "rsync -ax --exclude logs/${excludes} ${paramVars.projectRoot} ./"
 				}
 			}
 			stage ('Build') {
