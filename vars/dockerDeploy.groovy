@@ -1,8 +1,10 @@
 def call(Map paramVars) {
 	def mounts = ''
 	def network = ''
+	def ports = ''
+	
 	if(paramVars.mounts) {
-		for(mount in paramVars.mounts) {
+		for(def mount in paramVars.mounts) {
 			if(mount === 'logs') {
 				mounts += " --mount type=bind,source=${paramVars.projectRoot}/${mount},target=/${mount}"
 			} else {
@@ -10,8 +12,15 @@ def call(Map paramVars) {
 			}
 		}
 	}
+	
 	if(paramVars.networks){
 		network = " --network ${paramVars.networks.pop()}"
+	}
+
+	if(paramVars.ports) {
+		for(def port in paramVars.ports) {
+			ports += " -p ${port}"
+		}
 	}
 	
 	pipeline {
@@ -46,7 +55,11 @@ def call(Map paramVars) {
 				steps {
 					script {
 						sh "docker create --name ${paramVars.name} --restart always${mounts}${network} ${paramVars.imageName}"
-						
+						if (paramVars.networks && paramVars.networks.length >=1) {
+							def networkAlias = paramVars.networkAlias ? " --alias ${paramVars.networkAlias}" : ''
+							for(def additionalNetwork in paramVars.networks) {
+								sh "docker network connect ${additionalNetwork} ${paramVars.name}${networkAlias}"
+						}
 					}
 				}
 			}
