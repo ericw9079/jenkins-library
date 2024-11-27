@@ -17,12 +17,12 @@ def call(Map params) {
 			}
 			stage ('Clean') {
 				steps {
-          cleanWs()
+					cleanWs()
 				}
 			}
 			stage ('Deploy') {
 				steps {
-          build params.deployJob
+					build params.deployJob
 				}
 			}
 		}
