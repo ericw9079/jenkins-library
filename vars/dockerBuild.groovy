@@ -1,4 +1,12 @@
-def call(Map params) {
+def call(Map paramVars) {
+	def excludes = ''
+
+	if(paramVars.excludes) {
+		for(def exclude in paramVars.excludes) {
+			excludes += " --exclude ${exclude}"
+		}
+	}
+	
 	pipeline {
 		agent {
 			label 'docker'
@@ -6,12 +14,13 @@ def call(Map params) {
 		stages {
 			stage ('Checkout') {
 				steps {
+					sh "rsync -ax${excludes} ${paramVars.projectRoot} ./"
 				}
 			}
 			stage ('Build') {
 				steps {
 					configFileProvider([configFile(fileId: 'npmrc', targetLocation: '.npmrc')]) {
-						sh 'docker build --rm --secret id=npmrc,src=.npmrc -t ${params.name} .'
+						sh "docker build --rm --secret id=npmrc,src=.npmrc -t ${paramVars.name} ."
 					}
 				}
 			}
@@ -22,7 +31,7 @@ def call(Map params) {
 			}
 			stage ('Deploy') {
 				steps {
-					build params.deployJob
+					build paramVars.deployJob
 				}
 			}
 		}
