@@ -8,13 +8,15 @@
     - imageName (String): Name of the image to launch the container from
     - [OPTIONAL] ports (ArrayList<String>): List of ports to bind (no ports are bound by default)
     - [OPTIONAL] networks (ArrayList<String>): List of networks to connect the container to (connects to bridge network by default per docker default)
-    - [OPTIONAL] mounts (ArrayList<String>): List of files/folders in the root directory to mount (nothing is mounted by default
+    - [OPTIONAL] mounts (ArrayList<String>): List of files/folders in the root directory to mount (nothing is mounted by default)
+    - [OPTIONAL] volumes (Map<String,String>): Docker volumes to mount to the container in the form "<name>: <mount location>" (nothing is mounted by default)
     - [OPTIONAL] networkAlias (String): DNS alias to use on additional container networks (the first connected network will not use the alias)
  */
 def call(Map paramVars) {
 	def mounts = ''
 	def network = ''
 	def ports = ''
+	def volumes = ''
 	
 	if(paramVars.mounts) {
 		for(def mount in paramVars.mounts) {
@@ -23,6 +25,12 @@ def call(Map paramVars) {
 			} else {
 				mounts += " --mount type=bind,source=${paramVars.projectRoot}/${mount},target=/app/${mount}"
 			}
+		}
+	}
+
+	if(paramVars.volumes) {
+		for(def entry in paramVars.volumes) {
+			volumes += " -v ${entry.key}:${entry.value}"
 		}
 	}
 	
@@ -67,7 +75,7 @@ def call(Map paramVars) {
 			stage ('Setup') {
 				steps {
 					script {
-						sh "docker create --name ${paramVars.name} --restart always${mounts}${network} ${paramVars.imageName}"
+						sh "docker create --name ${paramVars.name} --restart always${mounts}${volumes}${network} ${paramVars.imageName}"
 						if (paramVars.networks && paramVars.networks.length >=1) {
 							def networkAlias = paramVars.networkAlias ? " --alias ${paramVars.networkAlias}" : ''
 							for(def additionalNetwork in paramVars.networks) {
