@@ -10,27 +10,27 @@ def call(Map params) {
 						sh 'docker stop ${params.name}'
 					}
 				}
-				stage ('Remove Container') {
-					steps {
-						catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-							sh 'docker stop ${params.name}'
-						}
+			}
+			stage ('Remove Container') {
+				steps {
+					catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+						sh 'docker stop ${params.name}'
 					}
 				}
-				stage ('Rotate Logs') {
-					steps {
-					}
+			}
+			stage ('Rotate Logs') {
+				steps {
 				}
-				stage ('Setup') {
-					steps {
-					}
+			}
+			stage ('Setup') {
+				steps {
 				}
-				stage ('Start') {
-            steps {
-                sh 'docker start ${params.name}'
-            }
-        }
+			}
+			stage ('Start') {
+				steps {
+					sh 'docker start ${params.name}'
+				}
 			}
 		}
-  }
+	}
 }
