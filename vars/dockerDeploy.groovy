@@ -59,6 +59,7 @@ def call(Map paramVars) {
 							def networkAlias = paramVars.networkAlias ? " --alias ${paramVars.networkAlias}" : ''
 							for(def additionalNetwork in paramVars.networks) {
 								sh "docker network connect ${additionalNetwork} ${paramVars.name}${networkAlias}"
+							}
 						}
 					}
 				}
