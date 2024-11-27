@@ -5,7 +5,7 @@ def call(Map paramVars) {
 	
 	if(paramVars.mounts) {
 		for(def mount in paramVars.mounts) {
-			if(mount === 'logs') {
+			if(mount == 'logs') {
 				mounts += " --mount type=bind,source=${paramVars.projectRoot}/${mount},target=/${mount}"
 			} else {
 				mounts += " --mount type=bind,source=${paramVars.projectRoot}/${mount},target=/app/${mount}"
