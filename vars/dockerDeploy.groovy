@@ -4,8 +4,8 @@
     - previously built docker image
   Parameters (via Map variable):
     - name (String): Name of docker container to deploy
-    - projectRoot (String): The root directory of the project (used for mounts and rotating the logs)
     - imageName (String): Name of the image to launch the container from
+    - [OPTIONAL] projectRoot (String): The root directory of the project (used for mounts and rotating the logs)
     - [OPTIONAL] ports (ArrayList<String>): List of ports to bind (no ports are bound by default)
     - [OPTIONAL] networks (ArrayList<String>): List of networks to connect the container to (connects to bridge network by default per docker default)
     - [OPTIONAL] mounts (ArrayList<String>): List of files/folders in the root directory to mount (nothing is mounted by default)
@@ -18,7 +18,7 @@ def call(Map paramVars) {
 	def ports = ''
 	def volumes = ''
 	
-	if(paramVars.mounts) {
+	if(params.projectRoot && paramVars.mounts) {
 		for(def mount in paramVars.mounts) {
 			if(mount == 'logs') {
 				mounts += " --mount type=bind,source=${paramVars.projectRoot}/${mount},target=/${mount}"
@@ -64,6 +64,11 @@ def call(Map paramVars) {
 				}
 			}
 			stage ('Rotate Logs') {
+				when {
+					expression {
+						return paramVars.projectRoot
+					}
+				}
 				steps {
 					dir(paramVars.projectRoot) {
 						catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
