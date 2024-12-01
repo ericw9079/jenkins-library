@@ -18,7 +18,7 @@ def call(Map paramVars) {
 	def ports = ''
 	def volumes = ''
 	
-	if(params.projectRoot && paramVars.mounts) {
+	if(paramVars.projectRoot && paramVars.mounts) {
 		for(def mount in paramVars.mounts) {
 			if(mount == 'logs') {
 				mounts += " --mount type=bind,source=${paramVars.projectRoot}/${mount},target=/${mount}"
