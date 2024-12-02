@@ -80,7 +80,7 @@ def call(Map paramVars) {
 			stage ('Setup') {
 				steps {
 					script {
-						sh "docker create --name ${paramVars.name} --restart always${mounts}${volumes}${network} ${paramVars.imageName}"
+						sh "docker create --name ${paramVars.name} --restart always${mounts}${volumes}${network}${ports} ${paramVars.imageName}"
 						if (paramVars.networks && paramVars.networks.size() >= 1) {
 							def networkAlias = paramVars.networkAlias ? " --alias ${paramVars.networkAlias}" : ''
 							for(def additionalNetwork in paramVars.networks) {
