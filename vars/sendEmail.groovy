@@ -1,4 +1,3 @@
-import jakarta.mail.Authenticator;
 import jakarta.mail.MessagingException
 import jakarta.mail.PasswordAuthentication
 import jakarta.mail.Session
@@ -6,6 +5,22 @@ import jakarta.mail.Transport
 import jakarta.mail.Message.RecipientType
 import jakarta.mail.internet.MimeMessage
 import jakarta.mail.internet.InternetAddress
+
+class Authenticator extends jakarta.mail.Authenticator {
+  private String email
+  private String pass
+
+  public Authenticator(String email, String pass) {
+    super()
+    this.email = email
+    this.pass = pass
+  }
+  
+  @Override
+  protected PasswordAuthentication getPasswordAuthentication() {
+    return new PasswordAuthentication(this.email, this.pass)
+  }
+}
 
 /**
   Send an email
@@ -50,12 +65,7 @@ def call(Map paramVars) {
     props.put("mail.smtp.auth","true")
     props.put("mail.smtp.timeout","60000")
     props.put("mail.smtp.connectiontimeout","60000")
-    def authenticator = new Authenticator() {
-      @Override
-      protected PasswordAuthentication getPasswordAuthentication() {
-        return new PasswordAuthentication("$EMAIL", "$PASS")
-      }
-    }
+    def authenticator = new Authenticator("$EMAIL", "$PASS")
     MimeMessage message = new MimeMessage(Session.getDefaultInstance(props, authenticator))
     message.setFrom(new InternetAddress("$EMAIL"))
     message.addRecipients(RecipientType.TO, new InternetAddress(paramVars.to))
