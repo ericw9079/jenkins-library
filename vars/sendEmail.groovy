@@ -19,8 +19,6 @@ import jakarta.mail.internet.InternetAddress
     - subject (String): Subject of the message to send
     - [OPTIONAL] cc (String): Email address to CC on the email
     - [OPTIONAL] bcc (String): Email address to BCC on the email
-    - [OPTIONAL] mimeType (String): Mime Type of the message (defaults to 'text/plain')
-    - [OPTIONAL] charset (String): Charset of the message (defaults to UTF-8)
     - [OPTIONAL] replyTo (String): Email address to set as the Reply-To address
  */
 def call(Map paramVars) {
@@ -63,15 +61,7 @@ def call(Map paramVars) {
       message.addRecipients(RecipientType.BCC, new InternetAddress(paramVars.bcc))
     }
     message.setSubject(paramVars.subject)
-    def mimeType = 'text/plain'
-    def charset = 'UTF-8'
-    if (paramVars.mimeType) {
-      mimeType = paramVars.mimeType.toString()
-    }
-    if (paramVars.charset) {
-      charset = paramVars.charset
-    }
-    message.setContent(paramVars.body, String.format("%s; charset=%s", mimeType, MimeUtility.quote(charset, HeaderTokenizer.MIME)))
+    message.setText(paramVars.body)
     if (paramVars.replyTo) {
       message.setReplyTo(new InternetAddress(paramVars.replyTo))
     }
