@@ -50,12 +50,13 @@ def call(Map paramVars) {
     props.put("mail.smtp.auth","true")
     props.put("mail.smtp.timeout","60000")
     props.put("mail.smtp.connectiontimeout","60000")
-    MimeMessage message = new MimeMessage(Session.getDefaultInstance(props, new Authenticator() {
+    def authenticator = new Authenticator() {
       @Override
       protected PasswordAuthentication getPasswordAuthentication() {
         return new PasswordAuthentication("$EMAIL", "$PASS")
       }
-    }))
+    }
+    MimeMessage message = new MimeMessage(Session.getDefaultInstance(props, authenticator))
     message.setFrom(new InternetAddress("$EMAIL"))
     message.addRecipients(RecipientType.TO, new InternetAddress(paramVars.to))
     if (paramVars.cc) {
