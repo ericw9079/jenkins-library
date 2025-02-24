@@ -38,11 +38,11 @@ private def send(Map params, String email, String pass) {
       message.addRecipients(RecipientType.BCC, new InternetAddress(params.bcc))
     }
     message.setSubject(params.subject)
-    def mimeType = "text/plain".toString()
+    def mimeType = "text/plain"
     if (params.mimeType) {
-      mimeType = params.mimeType.toString()
+      mimeType = params.mimeType
     }
-    message.setContent(params.body, mimeType)
+    message.setContent(params.body, mimeType.toString())
     if (params.replyTo) {
       message.setReplyTo(new InternetAddress(params.replyTo))
     }
