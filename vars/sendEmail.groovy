@@ -23,7 +23,7 @@ private def send(Map params, String email, String pass) {
     props.put("mail.smtp.timeout","60000")
     props.put("mail.smtp.connectiontimeout","60000")
     def authenticator = new Authenticator() {
-      @Override
+      @Override @NonCPS
       protected PasswordAuthentication getPasswordAuthentication() {
           return new PasswordAuthentication(email, pass);
       }
