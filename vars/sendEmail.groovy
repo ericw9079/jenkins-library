@@ -38,7 +38,7 @@ private def send(Map params, String email, String pass) {
       message.addRecipients(RecipientType.BCC, new InternetAddress(params.bcc))
     }
     message.setSubject(params.subject)
-    def mimeType = "text/plain"
+    String mimeType = "text/plain"
     if (params.mimeType) {
       mimeType = params.mimeType
     }
