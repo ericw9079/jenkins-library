@@ -4,7 +4,9 @@ import jakarta.mail.PasswordAuthentication
 import jakarta.mail.Session
 import jakarta.mail.Transport
 import jakarta.mail.Message.RecipientType
+import jakarta.mail.internet.HeaderTokenizer;
 import jakarta.mail.internet.MimeMessage
+import jakarta.mail.internet.MimeUtility
 import jakarta.mail.internet.InternetAddress
 
 /**
@@ -18,6 +20,7 @@ import jakarta.mail.internet.InternetAddress
     - [OPTIONAL] cc (String): Email address to CC on the email
     - [OPTIONAL] bcc (String): Email address to BCC on the email
     - [OPTIONAL] mimeType (String): Mime Type of the message (defaults to 'text/plain')
+    - [OPTIONAL] charset (String): Charset of the message (defaults to UTF-8)
     - [OPTIONAL] replyTo (String): Email address to set as the Reply-To address
  */
 def call(Map paramVars) {
@@ -61,10 +64,14 @@ def call(Map paramVars) {
     }
     message.setSubject(paramVars.subject)
     def mimeType = 'text/plain'
+    def charset = 'UTF-8'
     if (paramVars.mimeType) {
       mimeType = paramVars.mimeType.toString()
     }
-    message.setText(paramVars.body)
+    if (paramVars.charset) {
+      charset = paramVars.charset
+    }
+    message.setContent(paramVars.body, String.format("%s; charset=%s", mimeType, MimeUtility.quote(charset, HeaderTokenizer.MIME)))
     if (paramVars.replyTo) {
       message.setReplyTo(new InternetAddress(paramVars.replyTo))
     }
