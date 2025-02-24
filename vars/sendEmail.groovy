@@ -64,7 +64,7 @@ def call(Map paramVars) {
     if (paramVars.mimeType) {
       mimeType = paramVars.mimeType.toString()
     }
-    message.setContent(paramVars.body, mimeType)
+    message.setContent(paramVars.body, 'text/plain')
     if (paramVars.replyTo) {
       message.setReplyTo(new InternetAddress(paramVars.replyTo))
     }
