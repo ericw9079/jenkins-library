@@ -16,7 +16,7 @@ class Authenticator extends jakarta.mail.Authenticator {
     this.pass = pass
   }
   
-  @Override
+  @Override @NonCPS
   protected PasswordAuthentication getPasswordAuthentication() {
     return new PasswordAuthentication(this.email, this.pass)
   }
