@@ -7,48 +7,6 @@ import jakarta.mail.Message.RecipientType
 import jakarta.mail.internet.MimeMessage
 import jakarta.mail.internet.InternetAddress
 
-@NonCPS
-private def send(Map params, String email, String pass) {
-  Properties props = new Properties()
-    props.put("mail.smtp.user", email)
-    props.put("mail.smtp.host", params.host)
-    props.put("mail.smtp.port", "465")
-    props.put("mail.smtp.socketFactory.port", "465")
-    props.put("mail.smtp.starttls.enable","true")
-    props.put("mail.smtp.ssl.enable","true")
-    props.put("mail.smtp.ssl.checkserveridentity", true)
-    props.put("mail.smtp.socketFactory.fallback", "false");
-    props.put("mail.smtp.ssl.trust", params.host)
-    props.put("mail.smtp.auth","true")
-    props.put("mail.smtp.timeout","60000")
-    props.put("mail.smtp.connectiontimeout","60000")
-    def authenticator = new Authenticator() {
-      @Override @NonCPS
-      protected PasswordAuthentication getPasswordAuthentication() {
-          return new PasswordAuthentication(email, pass);
-      }
-    }
-    MimeMessage message = new MimeMessage(Session.getInstance(props, authenticator))
-    message.setFrom(new InternetAddress("$EMAIL"))
-    message.addRecipients(RecipientType.TO, new InternetAddress(params.to))
-    if (params.cc) {
-      message.addRecipients(RecipientType.CC, new InternetAddress(params.cc))
-    }
-    if (params.bcc) {
-      message.addRecipients(RecipientType.BCC, new InternetAddress(params.bcc))
-    }
-    message.setSubject(params.subject)
-    def mimeType = "text/plain"
-    if (params.mimeType) {
-      mimeType = params.mimeType
-    }
-    message.setContent(params.body, mimeType.toString())
-    if (params.replyTo) {
-      message.setReplyTo(new InternetAddress(params.replyTo))
-    }
-    Transport.send(message)
-}
-
 /**
   Send an email
   Parameters (via Map variable):
@@ -79,7 +37,38 @@ def call(Map paramVars) {
     throw new IllegalArgumentException('Missing Subject')
   }
   withCredentials([usernamePassword(credentialsId: paramVars.credentialsId, passwordVariable: 'PASS', usernameVariable: 'EMAIL')]) {
-  	send(paramVars, "$EMAIL", "$PASS")
+  	Properties props = new Properties()
+    props.put("mail.smtp.user", email)
+    props.put("mail.smtp.host", params.host)
+    props.put("mail.smtp.port", "465")
+    props.put("mail.smtp.socketFactory.port", "465")
+    props.put("mail.smtp.starttls.enable","true")
+    props.put("mail.smtp.ssl.enable","true")
+    props.put("mail.smtp.ssl.checkserveridentity", true)
+    props.put("mail.smtp.socketFactory.fallback", "false");
+    props.put("mail.smtp.ssl.trust", params.host)
+    props.put("mail.smtp.auth","true")
+    props.put("mail.smtp.timeout","60000")
+    props.put("mail.smtp.connectiontimeout","60000")
+    MimeMessage message = new MimeMessage(Session.getInstance(props))
+    message.setFrom(new InternetAddress("$EMAIL"))
+    message.addRecipients(RecipientType.TO, new InternetAddress(params.to))
+    if (params.cc) {
+      message.addRecipients(RecipientType.CC, new InternetAddress(params.cc))
+    }
+    if (params.bcc) {
+      message.addRecipients(RecipientType.BCC, new InternetAddress(params.bcc))
+    }
+    message.setSubject(params.subject)
+    def mimeType = "text/plain"
+    if (params.mimeType) {
+      mimeType = params.mimeType
+    }
+    message.setContent(params.body, mimeType)
+    if (params.replyTo) {
+      message.setReplyTo(new InternetAddress(params.replyTo))
+    }
+    Transport.send(message, "$EMAIL", "$PASS")
   }
   
 }
