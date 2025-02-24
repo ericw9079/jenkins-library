@@ -1,3 +1,4 @@
+import jakarta.mail.Authenticator;
 import jakarta.mail.MessagingException
 import jakarta.mail.PasswordAuthentication
 import jakarta.mail.Session
