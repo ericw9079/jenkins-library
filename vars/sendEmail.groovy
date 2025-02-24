@@ -1,3 +1,4 @@
+import jakarta.mail.Authenticator
 import jakarta.mail.MessagingException
 import jakarta.mail.PasswordAuthentication
 import jakarta.mail.Session
@@ -6,20 +7,46 @@ import jakarta.mail.Message.RecipientType
 import jakarta.mail.internet.MimeMessage
 import jakarta.mail.internet.InternetAddress
 
-class Authenticator extends jakarta.mail.Authenticator {
-  private String email
-  private String pass
-
-  public Authenticator(String email, String pass) {
-    super()
-    this.email = email
-    this.pass = pass
-  }
-  
-  @Override @NonCPS
-  protected PasswordAuthentication getPasswordAuthentication() {
-    return new PasswordAuthentication(this.email, this.pass)
-  }
+@NonCPS
+private def send(Map params, String email, String pass) {
+  Properties props = new Properties()
+    props.put("mail.smtp.user", email)
+    props.put("mail.smtp.host", params.host)
+    props.put("mail.smtp.port", "465")
+    props.put("mail.smtp.socketFactory.port", "465")
+    props.put("mail.smtp.starttls.enable","true")
+    props.put("mail.smtp.ssl.enable","true")
+    props.put("mail.smtp.ssl.checkserveridentity", true)
+    props.put("mail.smtp.socketFactory.fallback", "false");
+    props.put("mail.smtp.ssl.trust", params.host)
+    props.put("mail.smtp.auth","true")
+    props.put("mail.smtp.timeout","60000")
+    props.put("mail.smtp.connectiontimeout","60000")
+    def authenticator = new Authenticator() {
+      @Override
+      protected PasswordAuthentication getPasswordAuthentication() {
+          return new PasswordAuthentication(email, pass);
+      }
+    }
+    MimeMessage message = new MimeMessage(Session.getInstance(props, authenticator))
+    message.setFrom(new InternetAddress("$EMAIL"))
+    message.addRecipients(RecipientType.TO, new InternetAddress(params.to))
+    if (params.cc) {
+      message.addRecipients(RecipientType.CC, new InternetAddress(params.cc))
+    }
+    if (params.bcc) {
+      message.addRecipients(RecipientType.BCC, new InternetAddress(params.bcc))
+    }
+    message.setSubject(params.subject)
+    def mimeType = "text/plain"
+    if (params.mimeType) {
+      mimeType = params.mimeType
+    }
+    message.setContent(params.body, mimeType)
+    if (params.replyTo) {
+      message.setReplyTo(new InternetAddress(params.replyTo))
+    }
+    Transport.send(message)
 }
 
 /**
@@ -52,39 +79,7 @@ def call(Map paramVars) {
     throw new IllegalArgumentException('Missing Subject')
   }
   withCredentials([usernamePassword(credentialsId: paramVars.credentialsId, passwordVariable: 'PASS', usernameVariable: 'EMAIL')]) {
-  	Properties props = new Properties()
-    props.put("mail.smtp.user", "$EMAIL")
-    props.put("mail.smtp.host", paramVars.host)
-    props.put("mail.smtp.port", "465")
-    props.put("mail.smtp.socketFactory.port", "465")
-    props.put("mail.smtp.starttls.enable","true")
-    props.put("mail.smtp.ssl.enable","true")
-    props.put("mail.smtp.ssl.checkserveridentity", true)
-    props.put("mail.smtp.socketFactory.fallback", "false");
-    props.put("mail.smtp.ssl.trust", paramVars.host)
-    props.put("mail.smtp.auth","true")
-    props.put("mail.smtp.timeout","60000")
-    props.put("mail.smtp.connectiontimeout","60000")
-    def authenticator = new Authenticator("$EMAIL", "$PASS")
-    MimeMessage message = new MimeMessage(Session.getInstance(props, authenticator))
-    message.setFrom(new InternetAddress("$EMAIL"))
-    message.addRecipients(RecipientType.TO, new InternetAddress(paramVars.to))
-    if (paramVars.cc) {
-      message.addRecipients(RecipientType.CC, new InternetAddress(paramVars.cc))
-    }
-    if (paramVars.bcc) {
-      message.addRecipients(RecipientType.BCC, new InternetAddress(paramVars.bcc))
-    }
-    message.setSubject(paramVars.subject)
-    def mimeType = "text/plain"
-    if (paramVars.mimeType) {
-      mimeType = paramVars.mimeType
-    }
-    message.setContent(paramVars.body, mimeType)
-    if (paramVars.replyTo) {
-      message.setReplyTo(new InternetAddress(paramVars.replyTo))
-    }
-    Transport.send(message)
+  	send(paramVars, "$EMAIL", "$PASS")
   }
   
 }
