@@ -38,35 +38,35 @@ def call(Map paramVars) {
   }
   withCredentials([usernamePassword(credentialsId: paramVars.credentialsId, passwordVariable: 'PASS', usernameVariable: 'EMAIL')]) {
   	Properties props = new Properties()
-    props.put("mail.smtp.user", email)
-    props.put("mail.smtp.host", params.host)
+    props.put("mail.smtp.user", "$EMAIL")
+    props.put("mail.smtp.host", paramVars.host)
     props.put("mail.smtp.port", "465")
     props.put("mail.smtp.socketFactory.port", "465")
     props.put("mail.smtp.starttls.enable","true")
     props.put("mail.smtp.ssl.enable","true")
     props.put("mail.smtp.ssl.checkserveridentity", true)
     props.put("mail.smtp.socketFactory.fallback", "false");
-    props.put("mail.smtp.ssl.trust", params.host)
+    props.put("mail.smtp.ssl.trust", paramVars.host)
     props.put("mail.smtp.auth","true")
     props.put("mail.smtp.timeout","60000")
     props.put("mail.smtp.connectiontimeout","60000")
     MimeMessage message = new MimeMessage(Session.getInstance(props))
     message.setFrom(new InternetAddress("$EMAIL"))
-    message.addRecipients(RecipientType.TO, new InternetAddress(params.to))
-    if (params.cc) {
-      message.addRecipients(RecipientType.CC, new InternetAddress(params.cc))
+    message.addRecipients(RecipientType.TO, new InternetAddress(paramVars.to))
+    if (paramVars.cc) {
+      message.addRecipients(RecipientType.CC, new InternetAddress(paramVars.cc))
     }
-    if (params.bcc) {
-      message.addRecipients(RecipientType.BCC, new InternetAddress(params.bcc))
+    if (paramVars.bcc) {
+      message.addRecipients(RecipientType.BCC, new InternetAddress(paramVars.bcc))
     }
-    message.setSubject(params.subject)
+    message.setSubject(paramVars.subject)
     def mimeType = "text/plain"
-    if (params.mimeType) {
-      mimeType = params.mimeType
+    if (paramVars.mimeType) {
+      mimeType = paramVars.mimeType
     }
-    message.setContent(params.body, mimeType)
-    if (params.replyTo) {
-      message.setReplyTo(new InternetAddress(params.replyTo))
+    message.setContent(paramVars.body, mimeType)
+    if (paramVars.replyTo) {
+      message.setReplyTo(new InternetAddress(paramVars.replyTo))
     }
     Transport.send(message, "$EMAIL", "$PASS")
   }
