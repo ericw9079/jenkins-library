@@ -60,9 +60,9 @@ def call(Map paramVars) {
       message.addRecipients(RecipientType.BCC, new InternetAddress(paramVars.bcc))
     }
     message.setSubject(paramVars.subject)
-    def mimeType = "text/plain"
+    def mimeType = 'text/plain'
     if (paramVars.mimeType) {
-      mimeType = paramVars.mimeType
+      mimeType = paramVars.mimeType.toString()
     }
     message.setContent(paramVars.body, mimeType)
     if (paramVars.replyTo) {
