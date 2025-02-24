@@ -1,12 +1,7 @@
-import jakarta.mail.Authenticator
-import jakarta.mail.MessagingException
-import jakarta.mail.PasswordAuthentication
 import jakarta.mail.Session
 import jakarta.mail.Transport
 import jakarta.mail.Message.RecipientType
-import jakarta.mail.internet.HeaderTokenizer;
 import jakarta.mail.internet.MimeMessage
-import jakarta.mail.internet.MimeUtility
 import jakarta.mail.internet.InternetAddress
 
 /**
