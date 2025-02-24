@@ -35,9 +35,9 @@ def call(Map paramVars) {
   if (!paramVars.subject) {
     throw new IllegalArgumentException('Missing Subject')
   }
-  withCredentials([usernamePassword(credentialsId: paramVars.credentialsId, passwordVariable: '$PASS', usernameVariable: '$EMAIL')]) {
+  withCredentials([usernamePassword(credentialsId: paramVars.credentialsId, passwordVariable: 'PASS', usernameVariable: 'EMAIL')]) {
   	Properties props = new Properties()
-    props.put("mail.smtp.user", EMAIL)
+    props.put("mail.smtp.user", $EMAIL)
     props.put("mail.smtp.host", paramVars.host)
     props.put("mail.smtp.port", "465")
     props.put("mail.smtp.socketFactory.port", "465")
@@ -49,8 +49,8 @@ def call(Map paramVars) {
     props.put("mail.smtp.auth","true")
     props.put("mail.smtp.timeout","60000")
     props.put("mail.smtp.connectiontimeout","60000")
-    MimeMessage message = new MimeMessage(Session.getDefaultInstance(props, new PasswordAuthentication(EMAIL, PASS)))
-    message.setFrom(new InternetAddress(EMAIL))
+    MimeMessage message = new MimeMessage(Session.getDefaultInstance(props, new PasswordAuthentication($EMAIL, $PASS)))
+    message.setFrom(new InternetAddress($EMAIL))
     message.addRecipients(RecipientType.TO, new InternetAddress(paramVars.to))
     if (paramVars.cc) {
       message.addRecipients(RecipientType.CC, new InternetAddress(paramVars.cc))
