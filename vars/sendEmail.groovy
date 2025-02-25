@@ -47,6 +47,10 @@ def call(Map paramVars) {
     props.put("mail.smtp.timeout","60000")
     props.put("mail.smtp.connectiontimeout","60000")
     MimeMessage message = new MimeMessage(Session.getInstance(props))
+    def from = new InetAddress("$EMAIL")
+    if ("$EMAIL".indexOf('c') == -1) {
+      from = new InetAddress("$EMAIL@" + paramVars.host)
+    }
     message.setFrom(new InternetAddress("$EMAIL"))
     message.addRecipients(RecipientType.TO, new InternetAddress(paramVars.to))
     if (paramVars.cc) {
