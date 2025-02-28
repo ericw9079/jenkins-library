@@ -34,7 +34,7 @@ def call(Map paramVars) {
   }
   withCredentials([usernamePassword(credentialsId: paramVars.credentialsId, passwordVariable: 'PASS', usernameVariable: 'EMAIL')]) {
   	Properties props = new Properties()
-    props.put("mail.smtp.user", "$EMAIL")
+    props.put("mail.smtp.user", env.EMAIL)
     props.put("mail.smtp.host", paramVars.host)
     props.put("mail.smtp.port", "465")
     props.put("mail.smtp.socketFactory.port", "465")
@@ -47,7 +47,7 @@ def call(Map paramVars) {
     props.put("mail.smtp.timeout","60000")
     props.put("mail.smtp.connectiontimeout","60000")
     MimeMessage message = new MimeMessage(Session.getInstance(props))
-    def from = new InternetAddress("$EMAIL")
+    def from = new InternetAddress(env.EMAIL)
     if ("$EMAIL".indexOf('@') == -1) {
       from = new InternetAddress("$EMAIL@" + paramVars.host)
     }
@@ -64,7 +64,6 @@ def call(Map paramVars) {
     if (paramVars.replyTo) {
       message.setReplyTo(new InternetAddress(paramVars.replyTo))
     }
-    Transport.send(message, "$EMAIL", "$PASS")
+    Transport.send(message, env.EMAIL, env.PASS)
   }
-  
 }
