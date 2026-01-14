@@ -1,4 +1,4 @@
-Short Description: Build a Docker image for deployment
+Short Description: Build a standalone docker image for deployment
 Requirements:
   - Dockerfile in the project root
 Parameters:
