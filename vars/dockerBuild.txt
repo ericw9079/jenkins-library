@@ -8,7 +8,7 @@ Parameters:
   - [OPTIONAL] excludes (ArrayList<String>): List of additional files and folders to exclude from the build context (logs directory is excluded by default)
 Usage:
 dockerBuild(
-    name: 'docker:image',
+    name: 'image:name',
     projectRoot: '/path/to/project',
     deployJob: 'name of deploy job'
 )
