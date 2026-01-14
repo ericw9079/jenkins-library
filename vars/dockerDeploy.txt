@@ -1,7 +1,7 @@
-Short Description: Deploy a standalone docker image that was previously built
+Short Description: Deploy a standalone container of a docker image that was previously built
 Requirements:
-  - previously built docker image
-Parameters (via Map variable):
+  - previously built docker image to deploy
+Parameters:
   - name (String): Name of docker container to deploy
   - imageName (String): Name of the image to launch the container from
   - [OPTIONAL] projectRoot (String): The root directory of the project (used for mounts and rotating the logs)
