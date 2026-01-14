@@ -1,0 +1,20 @@
+Short Description: Send an email using the given SMTP server.
+Parameters:
+  - credentialId (String): Id of the credentials to use when connecting to SMTP server
+  - host (String): SMTP server to connect to
+  - to (String): Email address to send to
+  - body (String): Body of the message to send
+  - subject (String): Subject of the message to send
+  - [OPTIONAL] cc (String): Email address to CC on the email
+  - [OPTIONAL] bcc (String): Email address to BCC on the email
+  - [OPTIONAL] replyTo (String): Email address to set as the Reply-To address
+Usage:
+steps {
+  sendEmail(
+    credentialsId: 'SMTP_Credentials',
+    host: 'smtp.example.com',
+    to: 'email@example.com',
+    subject: 'Email Subject',
+    body: 'Email Body'
+  )
+}
