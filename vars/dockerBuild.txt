@@ -1,0 +1,14 @@
+Short Description: Build a Docker image for deployment
+Requirements:
+  - Dockerfile in the project root
+Parameters:
+  - name (String): Name of the image to build
+  - projectRoot (String): The root directory of the project
+  - deployJob (String): Name of the Jenkins job to deploy the image
+  - [OPTIONAL] excludes (ArrayList<String>): List of additional files and folders to exclude from the build context (logs directory is excluded by default)
+Usage:
+dockerBuild(
+    name: 'docker:image',
+    projectRoot: '/path/to/project',
+    deployJob: 'name of deploy job'
+)
