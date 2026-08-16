@@ -75,6 +75,7 @@ def call(Map paramVars) {
 									if (!hasNpmrc) {
 										// append simple string entry; this is accepted by compose
 										svcDef.build.secrets << 'npmrc'
+										echo "Added npmrc secret to service '${svcName}'."
 									}
 								}
 							}
