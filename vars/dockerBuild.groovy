@@ -1,39 +1,41 @@
 /**
-  This file defines the common process for building docker images for deployment
+  This file defines the common process for building docker compose stacks for deployment
   Requirements:
-    - Dockerfile in the project root
+    - docker-compose.yaml file in the project root
   Parameters (via Map variable):
-    - name (String): Name of the image to build
     - projectRoot (String): The root directory of the project
     - deployJob (String): Name of the Jenkins job to deploy the image
-    - [OPTIONAL] excludes (ArrayList<String>): List of additional files and folders to exclude from the build context (logs directory is excluded by default)
  */
 def call(Map paramVars) {
-	def excludes = ''
-
-	if(paramVars.excludes) {
-		for(def exclude in paramVars.excludes) {
-			excludes += " --exclude ${exclude}"
-		}
+	if (!paramVars.projectRoot) {
+		throw new IllegalArgumentException('Project Root is required')
 	}
-	
+
+	if (!paramVars.deployJob) {
+		throw new IllegalArgumentException('Missing deploy job')
+	}
 	pipeline {
 		agent {
-			label 'docker'
+			label 'built-in'
 		}
 		stages {
 			stage ('Checkout') {
 				steps {
-					sh "rsync -ax --exclude logs/${excludes} ${paramVars.projectRoot} ./"
+					sh "rsync -ax ${paramVars.projectRoot} ./"
 				}
 			}
-			stage ('Build') {
+			stage ('Build Docker Image(s)') {
 				steps {
 					configFileProvider([configFile(fileId: 'npmrc', targetLocation: '.npmrc')]) {
-						sh "docker build --rm --secret id=npmrc,src=.npmrc -t ${paramVars.name} ."
+						sh 'docker compose build'
 					}
 				}
 			}
+			stage ('Push Docker Image(s)') {
+	            steps {
+	                sh 'docker compose push'
+	            }
+	        }
 			stage ('Clean') {
 				steps {
 					cleanWs()
