@@ -1,6 +1,3 @@
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
-
 /**
   This file defines the process for deploying docker compose stacks
   Requirements:
@@ -41,11 +38,6 @@ def call(Map paramVars) {
 			stage ('Populate Deploy Config') {
 				steps {
 					script {
-						// deep-copy helper to avoid shared references and YAML anchors/aliases
-			            def deepCopy = { obj ->
-			              def json = JsonOutput.toJson(obj)
-			              return new JsonSlurper().parseText(json)
-			            }
 						configFileProvider([configFile(fileId: configFileId, targetLocation: 'deploy-template.yaml')]) {
 							Map deployTemplate = readYaml file: 'deploy-template.yaml'
 							if (deployTemplate == null) {
@@ -82,8 +74,6 @@ def call(Map paramVars) {
 				                echo "Service '${serviceName}' already has a deploy section — leaving it unchanged."
 				              }
 				            }
-				
-				            // Write modified compose back to workspace path
 				            writeYaml file: 'docker-compose.yaml', data: compose, overwrite: true
 						}
 					}
