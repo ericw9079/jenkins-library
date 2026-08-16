@@ -67,7 +67,7 @@ def call(Map paramVars) {
 							compose.services.each { serviceName, serviceDef ->
 				              // serviceDef is null when YAML contains "services:\n  foo:" with no mapping under foo
 				              if (serviceDef == null) {
-				                compose.services[serviceName] = [ deploy: deepCopy(deployTemplate) ]
+				                compose.services[serviceName] = [ deploy: deployTemplate ]
 				                echo "Added deploy to empty service '${serviceName}'."
 				                return
 				              }
@@ -76,7 +76,7 @@ def call(Map paramVars) {
 				                return
 				              }
 				              if (!serviceDef.containsKey('deploy') || serviceDef.deploy == null) {
-				                serviceDef.deploy = deepCopy(deployTemplate)
+				                serviceDef.deploy = deployTemplate
 				                echo "Added deploy to service '${serviceName}'."
 				              } else {
 				                echo "Service '${serviceName}' already has a deploy section — leaving it unchanged."
