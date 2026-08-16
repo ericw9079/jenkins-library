@@ -1,3 +1,6 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
 /**
   This file defines the process for deploying docker compose stacks
   Requirements:
