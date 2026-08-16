@@ -1,98 +1,94 @@
 /**
-  This file defines the process for deploying docker images
+  This file defines the process for deploying docker compose stacks
   Requirements:
-    - previously built docker image
+    - previously built docker image(s)
+	- docker compose file for the stack
   Parameters (via Map variable):
-    - name (String): Name of docker container to deploy
-    - imageName (String): Name of the image to launch the container from
-    - [OPTIONAL] projectRoot (String): The root directory of the project (used for mounts and rotating the logs)
-    - [OPTIONAL] ports (ArrayList<String>): List of ports to bind (no ports are bound by default)
-    - [OPTIONAL] networks (ArrayList<String>): List of networks to connect the container to (connects to bridge network by default per docker default)
-    - [OPTIONAL] mounts (ArrayList<String>): List of files/folders in the root directory to mount (nothing is mounted by default)
-    - [OPTIONAL] volumes (Map<String,String>): Docker volumes to mount to the container in the form "<name>: <mount location>" (nothing is mounted by default)
-    - [OPTIONAL] networkAlias (String): DNS alias to use on additional container networks (the first connected network will not use the alias)
+    - name (String): Name of docker stack to deploy
+    - composeFile (String): Path to the docker compose file defining the stack to deploy
+	- [OPTIONAL] configFileId (String): Id of the config file to use for the deploy template
  */
 def call(Map paramVars) {
-	def mounts = ''
-	def network = ''
-	def ports = ''
-	def volumes = ''
-	
-	if(paramVars.projectRoot && paramVars.mounts) {
-		for(def mount in paramVars.mounts) {
-			if(mount == 'logs') {
-				mounts += " --mount type=bind,source=${paramVars.projectRoot}/${mount},target=/${mount}"
-			} else {
-				mounts += " --mount type=bind,source=${paramVars.projectRoot}/${mount},target=/app/${mount}"
-			}
-		}
-	}
-
-	if(paramVars.volumes) {
-		for(def entry in paramVars.volumes) {
-			volumes += " -v ${entry.key}:${entry.value}"
-		}
+	if (!paramVars.name) {
+		throw new IllegalArgumentException('Missing Stack Name')
 	}
 	
-	if(paramVars.networks){
-		network = " --network ${paramVars.networks.pop()}"
+	if (!paramVars.composeFile) {
+		throw new IllegalArgumentException('Missing Compose File')
 	}
 
-	if(paramVars.ports) {
-		for(def port in paramVars.ports) {
-			ports += " -p ${port}"
-		}
+	def configFileId = 'deploy-template'
+
+	if (paramVars.configFileId) {
+		configFileId = paramVars.configFileId
 	}
 	
 	pipeline {
 		agent {
-			label 'docker'
+			label 'built-in'
 		}
 		stages {
-			stage ('Shutdown') {
+			stage ('Fetch Stack Config') {
 				steps {
 					catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-						sh "docker stop ${paramVars.name}"
+						sh "cp ${paramVars.composeFile} ./docker-compose.yaml"
 					}
 				}
 			}
-			stage ('Remove Container') {
-				steps {
-					catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-						sh "docker rm ${paramVars.name}"
-					}
-				}
-			}
-			stage ('Rotate Logs') {
-				when {
-					expression {
-						return paramVars.projectRoot
-					}
-				}
-				steps {
-					dir(paramVars.projectRoot) {
-						catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-							sh 'rotatelogs'
-						}
-					}
-				}
-			}
-			stage ('Setup') {
+			stage ('Populate Deploy Config') {
 				steps {
 					script {
-						sh "docker create --name ${paramVars.name} --restart always${mounts}${volumes}${network}${ports} ${paramVars.imageName}"
-						if (paramVars.networks && paramVars.networks.size() >= 1) {
-							def networkAlias = paramVars.networkAlias ? " --alias ${paramVars.networkAlias}" : ''
-							for(def additionalNetwork in paramVars.networks) {
-								sh "docker network connect ${additionalNetwork} ${paramVars.name}${networkAlias}"
-							}
+						// deep-copy helper to avoid shared references and YAML anchors/aliases
+			            def deepCopy = { obj ->
+			              def json = JsonOutput.toJson(obj)
+			              return new JsonSlurper().parseText(json)
+			            }
+						configFileProvider([configFile(fileId: configFileId, targetLocation: 'deploy-template.yaml')]) {
+							Map deployTemplate = readYaml file: 'deploy-template.yaml'
+							if (deployTemplate == null) {
+				            	error "Deploy template from '${configFileId}' was empty or invalid YAML."
+				            }
+							def compose = readYaml file: 'docker-compose.yaml'
+							if (compose == null) {
+				              error "Compose file is empty or could not be parsed as YAML."
+				            }
+				
+				            if (!compose.containsKey('services') || compose.services == null) {
+				              echo "No 'services' section found. Writing back unmodified file for consistency."
+				              writeYaml file: 'docker-compose.yaml', data: compose, overwrite: true
+				              return
+				            }
+				            if (!(compose.services instanceof Map)) {
+				              error "'services' in docker-compose.yaml is not a mapping/object; cannot process."
+				            }
+							compose.services.each { serviceName, serviceDef ->
+				              // serviceDef is null when YAML contains "services:\n  foo:" with no mapping under foo
+				              if (serviceDef == null) {
+				                compose.services[serviceName] = [ deploy: deepCopy(deployTemplate) ]
+				                echo "Added deploy to empty service '${serviceName}'."
+				                return
+				              }
+				              if (!(serviceDef instanceof Map)) {
+				                echo "Warning: service '${serviceName}' definition is not a mapping/object; skipping modification."
+				                return
+				              }
+				              if (!serviceDef.containsKey('deploy') || serviceDef.deploy == null) {
+				                serviceDef.deploy = deepCopy(deployTemplate)
+				                echo "Added deploy to service '${serviceName}'."
+				              } else {
+				                echo "Service '${serviceName}' already has a deploy section — leaving it unchanged."
+				              }
+				            }
+				
+				            // Write modified compose back to workspace path
+				            writeYaml file: 'docker-compose.yaml', data: compose, overwrite: true
 						}
 					}
 				}
 			}
-			stage ('Start') {
+			stage ('Deploy Stack') {
 				steps {
-					sh "docker start ${paramVars.name}"
+					sh "docker stack deploy --detach=false --compose-file docker-compose.yaml ${paramVars.name}"
 				}
 			}
 		}
